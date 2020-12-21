@@ -1,6 +1,7 @@
 <?xml version="1.0" encoding="utf-8"?>
 <manifest xmlns:android="http://schemas.android.com/apk/res/android"
-    android:sharedUserId="android.uid.system"
+
+    xmlns:tools="http://schemas.android.com/tools"
     package="com.example.wireLessApk">
 
     <uses-permission android:name="android.permission.WRITE_EXTERNAL_STORAGE"/>
@@ -24,13 +25,15 @@
         <receiver android:name=".BootCompletedReceiver">
             <intent-filter>
                 <action android:name="android.intent.action.BOOT_COMPLETED" />
+                <action android:name="com.android.robot.update"/>
             </intent-filter>
         </receiver>
 
         <receiver android:name=".UpdateReceiver">
             <intent-filter>
-                <action android:name="com.android.robot.update"/>
-                <action android:name="android.intent.action.PACKAGE_REPLACED"/>
+                <action android:name="android.intent.action.PACKAGE_ADDED" />
+                <action android:name="android.intent.action.PACKAGE_REPLACED" />
+                <action android:name="android.intent.action.PACKAGE_REMOVED" />
             </intent-filter>
         </receiver>
     </application>
