@@ -8,6 +8,8 @@ import android.app.ActivityManager;
 import android.content.Context;
 import android.content.Intent;
 import android.content.IntentFilter;
+import android.content.pm.ApplicationInfo;
+import android.content.pm.PackageInfo;
 import android.content.pm.PackageManager;
 import android.os.Bundle;
 import android.os.Environment;
@@ -42,11 +44,13 @@ public class MainActivity extends AppCompatActivity {
             if (msg.what == 1001) {
                 String path = Environment.getExternalStorageDirectory().getPath()
                         + "/com.example.robot" +"/update.apk";
-                ApkController.install(path, context);
+                boolean install = ApkController.install(path, context);
+                Log.d("zdzd ", "handle message1 ：" + install);
             } else if (msg.what == 1002) {
-                Log.d("zdzd ", "handle message");
+                Log.d("zdzd ", "handle message2");
                 getRunningProgressCount(context);
             } else if (msg.what == 1003) {
+                Log.d("zdzd ", "handle message3");
                 Intent intent = new Intent("com.android.robot.server.start");
                 intent.setPackage("com.example.robot");
                 intent.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
@@ -59,12 +63,28 @@ public class MainActivity extends AppCompatActivity {
      * 正在运行的进程数量
      * */
     public void getRunningProgressCount(Context context){
-        //包程序管理器，程序管理器PackageManager   静态的
-        //进程管理器ActivityManger    动态的
-        List<ActivityManager.RunningAppProcessInfo> infos =am.getRunningAppProcesses();
-        Log.d("zdzd ", ""+infos.size());
-        for (int i =0; i < infos.size(); i++) {
-            Log.d("zdzd ", infos.get(i).processName);
+        PackageManager localPackageManager = getPackageManager();
+        List localList = localPackageManager.getInstalledPackages(0);
+        for (int i = 0; i < localList.size(); i++) {
+            PackageInfo localPackageInfo1 = (PackageInfo) localList.get(i);
+            String str1 = localPackageInfo1.packageName.split(":")[0];
+            if (((ApplicationInfo.FLAG_SYSTEM & localPackageInfo1.applicationInfo.flags) == 0)
+                    && ((ApplicationInfo.FLAG_UPDATED_SYSTEM_APP & localPackageInfo1.applicationInfo.flags) == 0)
+                    && ((ApplicationInfo.FLAG_STOPPED & localPackageInfo1.applicationInfo.flags) == 0)) {
+                Log.v("进程信息222",str1);
+                if ("com.example.robot".equals(str1)) {
+                    myHandler.sendEmptyMessageDelayed(1002, 5000);
+                    return;
+                }
+            }
+            if (i == localList.size() - 1) {
+                Log.v("进程自启动 ", "" + localList.size());
+                Intent intent = new Intent("com.android.robot.server.start");
+                intent.setPackage("com.example.robot");
+                intent.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
+                intent.addFlags(Intent. FLAG_INCLUDE_STOPPED_PACKAGES);
+                context.sendBroadcast(intent);
+            }
         }
         myHandler.sendEmptyMessageDelayed(1002, 5000);
     }
@@ -77,7 +97,7 @@ public class MainActivity extends AppCompatActivity {
         context = this;
         myHandler = new MyHandler(this);
         am= (ActivityManager) context.getSystemService(Context.ACTIVITY_SERVICE);
-        //getRunningProgressCount(this);
+        myHandler.sendEmptyMessageDelayed(1002, 5000);
         Utilities.exec("setprop service.adb.tcp.port 5555");
         try {
             Thread.sleep(2000);
