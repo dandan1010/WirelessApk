@@ -1,9 +1,8 @@
-package com.example.wireLessApk;
+package com.retron.wireLessApk;
 
 import androidx.annotation.NonNull;
 import androidx.appcompat.app.AppCompatActivity;
 
-import android.annotation.SuppressLint;
 import android.app.ActivityManager;
 import android.content.Context;
 import android.content.Intent;
@@ -17,9 +16,6 @@ import android.os.Handler;
 import android.os.Message;
 import android.util.Log;
 
-import java.io.IOException;
-import java.io.InputStream;
-import java.io.OutputStream;
 import java.lang.ref.WeakReference;
 import java.util.List;
 
@@ -28,6 +24,7 @@ public class MainActivity extends AppCompatActivity {
     public static MyHandler myHandler ;
     private ActivityManager am;
     private UpdateReceiver updateReceiver;
+    private String packageName = "com.retron.robotAgent";
 
     public class MyHandler extends Handler {//防止内存泄漏
         //持有弱引用MainActivity,GC回收时会被回收掉.
@@ -43,16 +40,16 @@ public class MainActivity extends AppCompatActivity {
             Log.d("Wireless ", "handleMessage code : " + msg.what);
             if (msg.what == 1001) {
                 String path = Environment.getExternalStorageDirectory().getPath()
-                        + "/com.example.robot" +"/update.apk";
+                        + "/" + packageName +"/update.apk";
                 boolean install = ApkController.install(path, context);
-                Log.d("zdzd ", "handle message1 ：" + install);
+                Log.d("zdzd ", "ApkController.install ：" + install);
             } else if (msg.what == 1002) {
-                Log.d("zdzd ", "handle message2");
+                Log.d("zdzd ", "get robot apk package");
                 getRunningProgressCount(context);
             } else if (msg.what == 1003) {
-                Log.d("zdzd ", "handle message3");
+                Log.d("zdzd ", "start robot apk");
                 Intent intent = new Intent("com.android.robot.server.start");
-                intent.setPackage("com.example.robot");
+                intent.setPackage(packageName);
                 intent.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
                 context.sendBroadcast(intent);
             }
@@ -71,16 +68,16 @@ public class MainActivity extends AppCompatActivity {
             if (((ApplicationInfo.FLAG_SYSTEM & localPackageInfo1.applicationInfo.flags) == 0)
                     && ((ApplicationInfo.FLAG_UPDATED_SYSTEM_APP & localPackageInfo1.applicationInfo.flags) == 0)
                     && ((ApplicationInfo.FLAG_STOPPED & localPackageInfo1.applicationInfo.flags) == 0)) {
-                Log.v("进程信息222",str1);
-                if ("com.example.robot".equals(str1)) {
+                Log.v("MainActivity","packageName :" + str1);
+                if (packageName.equals(str1)) {
                     myHandler.sendEmptyMessageDelayed(1002, 5000);
                     return;
                 }
             }
             if (i == localList.size() - 1) {
-                Log.v("进程自启动 ", "" + localList.size());
+                Log.v("MainActivity ", "localList.size : " + localList.size());
                 Intent intent = new Intent("com.android.robot.server.start");
-                intent.setPackage("com.example.robot");
+                intent.setPackage(packageName);
                 intent.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
                 intent.addFlags(Intent. FLAG_INCLUDE_STOPPED_PACKAGES);
                 context.sendBroadcast(intent);

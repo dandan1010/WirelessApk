@@ -1,4 +1,4 @@
-package com.example.wireLessApk;
+package com.retron.wireLessApk;
 
 import android.content.BroadcastReceiver;
 import android.content.Context;
@@ -10,11 +10,11 @@ public class BootCompletedReceiver extends BroadcastReceiver {
     public void onReceive(Context context, Intent intent) {
 
         if (intent.getAction().equals(Intent.ACTION_BOOT_COMPLETED)) {
-            Log.d("BootCompletedReceiver", "开机启动");
+            Log.d("BootCompletedReceiver", "BootCompletedReceiver");
             Intent intent1 = new Intent(context, MainActivity.class);
             context.startActivity(intent1);
         } else if (intent.getAction().equals("com.android.robot.update")) {
-            Log.d("UpdateReceiver", "开始安装");
+            Log.d("UpdateReceiver", "start install");
             MainActivity.myHandler.sendEmptyMessage(1001);
         }
 
