@@ -18,7 +18,7 @@
         <activity android:name="com.retron.wireLessApk.MainActivity">
             <intent-filter>
                 <action android:name="android.intent.action.MAIN" />
-
+                <action android:name="com.android.robot.wireLess.start"></action>
                 <category android:name="android.intent.category.LAUNCHER" />
             </intent-filter>
         </activity>
@@ -26,6 +26,7 @@
             <intent-filter>
                 <action android:name="android.intent.action.BOOT_COMPLETED" />
                 <action android:name="com.android.robot.update"/>
+                <action android:name="com.android.mqtt.update"/>
             </intent-filter>
         </receiver>
 

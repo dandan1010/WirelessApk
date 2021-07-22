@@ -16,6 +16,9 @@ public class BootCompletedReceiver extends BroadcastReceiver {
         } else if (intent.getAction().equals("com.android.robot.update")) {
             Log.d("UpdateReceiver", "start install");
             MainActivity.myHandler.sendEmptyMessage(1001);
+        } else if (intent.getAction().equals("com.android.mqtt.update")) {
+            Log.d("UpdateReceiver", "start install");
+            MainActivity.myHandler.sendEmptyMessage(1005);
         }
 
     }

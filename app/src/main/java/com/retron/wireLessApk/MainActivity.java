@@ -24,7 +24,9 @@ public class MainActivity extends AppCompatActivity {
     public static MyHandler myHandler ;
     private ActivityManager am;
     private UpdateReceiver updateReceiver;
-    private String packageName = "com.retron.robotAgent";
+    private PackageManager localPackageManager;
+    private String robotPackageName = "com.retron.robotAgent";
+    private String mqttPackageName = "com.retron.robotmqtt";
 
     public class MyHandler extends Handler {//防止内存泄漏
         //持有弱引用MainActivity,GC回收时会被回收掉.
@@ -40,16 +42,30 @@ public class MainActivity extends AppCompatActivity {
             Log.d("Wireless ", "handleMessage code : " + msg.what);
             if (msg.what == 1001) {
                 String path = Environment.getExternalStorageDirectory().getPath()
-                        + "/" + packageName +"/update.apk";
+                        + "/" + robotPackageName +"/update.apk";
                 boolean install = ApkController.install(path, context);
-                Log.d("zdzd ", "ApkController.install ：" + install);
+                Log.d("zdzd ", "robot ApkController.install ：" + install);
             } else if (msg.what == 1002) {
                 Log.d("zdzd ", "get robot apk package");
                 getRunningProgressCount(context);
             } else if (msg.what == 1003) {
                 Log.d("zdzd ", "start robot apk");
                 Intent intent = new Intent("com.android.robot.server.start");
-                intent.setPackage(packageName);
+                intent.setPackage(robotPackageName);
+                intent.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
+                context.sendBroadcast(intent);
+            } else if (msg.what == 1004) {
+                Log.d("zdzd ", "get robotMqtt apk package");
+                getRunningMqtt(context);
+            } else if (msg.what == 1005) {
+                String path = Environment.getExternalStorageDirectory().getPath()
+                        + "/" + mqttPackageName +"/mqttUpdate.apk";
+                boolean install = ApkController.install(path, context);
+                Log.d("zdzd ", "mqttUpdate ApkController.install ：" + install);
+            } else if (msg.what == 1006){
+                Log.d("zdzd ", "start robot apk");
+                Intent intent = new Intent("com.android.mqtt.server.start");
+                intent.setPackage(mqttPackageName);
                 intent.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
                 context.sendBroadcast(intent);
             }
@@ -60,7 +76,6 @@ public class MainActivity extends AppCompatActivity {
      * 正在运行的进程数量
      * */
     public void getRunningProgressCount(Context context){
-        PackageManager localPackageManager = getPackageManager();
         List localList = localPackageManager.getInstalledPackages(0);
         for (int i = 0; i < localList.size(); i++) {
             PackageInfo localPackageInfo1 = (PackageInfo) localList.get(i);
@@ -69,7 +84,7 @@ public class MainActivity extends AppCompatActivity {
                     && ((ApplicationInfo.FLAG_UPDATED_SYSTEM_APP & localPackageInfo1.applicationInfo.flags) == 0)
                     && ((ApplicationInfo.FLAG_STOPPED & localPackageInfo1.applicationInfo.flags) == 0)) {
                 Log.v("MainActivity","packageName :" + str1);
-                if (packageName.equals(str1)) {
+                if (robotPackageName.equals(str1)) {
                     myHandler.sendEmptyMessageDelayed(1002, 5000);
                     return;
                 }
@@ -77,7 +92,7 @@ public class MainActivity extends AppCompatActivity {
             if (i == localList.size() - 1) {
                 Log.v("MainActivity ", "localList.size : " + localList.size());
                 Intent intent = new Intent("com.android.robot.server.start");
-                intent.setPackage(packageName);
+                intent.setPackage(robotPackageName);
                 intent.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
                 intent.addFlags(Intent. FLAG_INCLUDE_STOPPED_PACKAGES);
                 context.sendBroadcast(intent);
@@ -86,15 +101,46 @@ public class MainActivity extends AppCompatActivity {
         myHandler.sendEmptyMessageDelayed(1002, 5000);
     }
 
+    /*
+     * 正在运行的进程数量
+     * */
+    public void getRunningMqtt(Context context){
+        List localList = localPackageManager.getInstalledPackages(0);
+        for (int i = 0; i < localList.size(); i++) {
+            PackageInfo localPackageInfo1 = (PackageInfo) localList.get(i);
+            String str1 = localPackageInfo1.packageName.split(":")[0];
+            if (((ApplicationInfo.FLAG_SYSTEM & localPackageInfo1.applicationInfo.flags) == 0)
+                    && ((ApplicationInfo.FLAG_UPDATED_SYSTEM_APP & localPackageInfo1.applicationInfo.flags) == 0)
+                    && ((ApplicationInfo.FLAG_STOPPED & localPackageInfo1.applicationInfo.flags) == 0)) {
+                Log.v("MainActivity","packageName :" + str1);
+                if (mqttPackageName.equals(str1)) {
+                    myHandler.sendEmptyMessageDelayed(1004, 5000);
+                    return;
+                }
+            }
+            if (i == localList.size() - 1) {
+                Log.v("MainActivity ", "localList.size : " + localList.size());
+                Intent intent = new Intent("com.android.mqtt.server.start");
+                intent.setPackage(mqttPackageName);
+                intent.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
+                intent.addFlags(Intent. FLAG_INCLUDE_STOPPED_PACKAGES);
+                context.sendBroadcast(intent);
+            }
+        }
+        myHandler.sendEmptyMessageDelayed(1004, 5000);
+    }
+
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
         context = this;
+        localPackageManager = getPackageManager();
         myHandler = new MyHandler(this);
         am= (ActivityManager) context.getSystemService(Context.ACTIVITY_SERVICE);
         myHandler.sendEmptyMessageDelayed(1002, 5000);
+        myHandler.sendEmptyMessageDelayed(1004, 5000);
         Utilities.exec("setprop service.adb.tcp.port 5555");
         try {
             Thread.sleep(2000);

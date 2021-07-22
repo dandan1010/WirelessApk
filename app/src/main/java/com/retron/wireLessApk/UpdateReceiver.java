@@ -4,6 +4,7 @@ import android.content.BroadcastReceiver;
 import android.content.Context;
 import android.content.Intent;
 import android.content.pm.PackageManager;
+import android.nfc.Tag;
 import android.os.Environment;
 import android.util.Log;
 import android.widget.Toast;
@@ -17,16 +18,20 @@ public class UpdateReceiver extends BroadcastReceiver {
         PackageManager manager = context.getPackageManager();
         if (intent.getAction().equals(Intent.ACTION_PACKAGE_ADDED)) {
             String packageName = intent.getData().getSchemeSpecificPart();
-            Toast.makeText(context, "install apk : "+packageName, Toast.LENGTH_LONG).show();
+            Log.d("UpdateReceiver : " , "install apk : "+packageName);
         }
         if (intent.getAction().equals(Intent.ACTION_PACKAGE_REMOVED)) {
             String packageName = intent.getData().getSchemeSpecificPart();
-            Toast.makeText(context, "uninstall apk : "+packageName, Toast.LENGTH_LONG).show();
+            Log.d("UpdateReceiver : " , "uninstall apk : "+packageName);
         }
         if (intent.getAction().equals(Intent.ACTION_PACKAGE_REPLACED)) {
             String packageName = intent.getData().getSchemeSpecificPart();
-            Toast.makeText(context, "replace apk : "+packageName, Toast.LENGTH_LONG).show();
-            MainActivity.myHandler.sendEmptyMessage(1003);
+            Log.d("UpdateReceiver : " , "replace apk : "+packageName);
+            if (!"com.retron.robotmqtt".equals(packageName)) {
+                MainActivity.myHandler.sendEmptyMessage(1003);
+            } else {
+                MainActivity.myHandler.sendEmptyMessage(1006);
+            }
         }
     }
 }
